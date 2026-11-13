@@ -4,7 +4,7 @@
 
 **Blazing-fast CLI toolkit for Network Security Operations**
 
-[![CI](https://github.com/DBISHT4U/netsecops/actions/workflows/ci.yml/badge.svg)](https://github.com/DBISHT4U/NetSecOPS/actions)
+[![CI](https://github.com/DBISHT4U/NetSecOPS/actions/workflows/ci.yml/badge.svg)](https://github.com/DBISHT4U/NetSecOPS/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/Rust-1.75%2B-orange.svg)](https://www.rust-lang.org/)
 
@@ -42,7 +42,7 @@ If you work with **firewalls, web proxies, or cloud security tools** (Zscaler, F
 
 ### Download Binary (Recommended)
 
-Download the latest release for your platform from [Releases](https://github.com/DBISHT4U/netsecops/releases):
+Download the latest release for your platform from [Releases](https://github.com/DBISHT4U/NetSecOPS/releases):
 
 ```bash
 # Linux

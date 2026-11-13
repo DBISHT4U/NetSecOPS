@@ -7,23 +7,23 @@ use tabled::{Table, Tabled};
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct LogEntry {
-    #[serde(alias = "Timestamp", alias = "timestamp", alias = "date", alias = "Date", alias = "datetime")]
+    #[serde(alias = "Timestamp", alias = "timestamp", alias = "date", alias = "Date")]
     pub timestamp: Option<String>,
-    #[serde(alias = "User", alias = "user", alias = "username", alias = "Username", alias = "user_name")]
+    #[serde(alias = "User", alias = "user", alias = "username", alias = "Username")]
     pub user: Option<String>,
-    #[serde(alias = "Source IP", alias = "source_ip", alias = "src_ip", alias = "ClientIP", alias = "client_ip")]
+    #[serde(alias = "Source IP", alias = "source_ip", alias = "src_ip", alias = "ClientIP")]
     pub source_ip: Option<String>,
-    #[serde(alias = "URL", alias = "url", alias = "Url", alias = "request_url", alias = "RequestURL")]
+    #[serde(alias = "URL", alias = "url", alias = "Url", alias = "request_url")]
     pub url: Option<String>,
-    #[serde(alias = "Domain", alias = "domain", alias = "host", alias = "Host", alias = "hostname")]
+    #[serde(alias = "Domain", alias = "domain", alias = "host", alias = "Host")]
     pub domain: Option<String>,
-    #[serde(alias = "Action", alias = "action", alias = "status", alias = "Status", alias = "verdict")]
+    #[serde(alias = "Action", alias = "action", alias = "status", alias = "Status")]
     pub action: Option<String>,
-    #[serde(alias = "Category", alias = "category", alias = "url_category", alias = "URLCategory")]
+    #[serde(alias = "Category", alias = "category", alias = "url_category")]
     pub category: Option<String>,
-    #[serde(alias = "Bytes", alias = "bytes", alias = "size", alias = "Size", alias = "bytes_out")]
+    #[serde(alias = "Bytes", alias = "bytes", alias = "size", alias = "Size")]
     pub bytes: Option<u64>,
-    #[serde(alias = "Method", alias = "method", alias = "http_method")]
+    #[serde(alias = "Method", alias = "method")]
     pub method: Option<String>,
 }
 
@@ -54,8 +54,7 @@ struct LogReport {
 }
 
 fn extract_domain(url_or_domain: &str) -> String {
-    let s = url_or_domain
-        .trim()
+    let s = url_or_domain.trim()
         .trim_start_matches("http://")
         .trim_start_matches("https://");
     s.split('/').next().unwrap_or(s).to_lowercase()
@@ -63,45 +62,28 @@ fn extract_domain(url_or_domain: &str) -> String {
 
 fn is_blocked(action: &str) -> bool {
     let a = action.to_lowercase();
-    a.contains("block")
-        || a.contains("denied")
-        || a.contains("deny")
-        || a.contains("drop")
-        || a.contains("reject")
-        || a == "blocked"
+    a.contains("block") || a.contains("denied") || a.contains("deny")
+        || a.contains("drop") || a.contains("reject")
 }
 
 fn count_top_n(map: &HashMap<String, usize>, n: usize, total: usize) -> Vec<TopItem> {
     let mut sorted: Vec<_> = map.iter().collect();
     sorted.sort_by(|a, b| b.1.cmp(a.1));
-    sorted
-        .into_iter()
-        .take(n)
-        .enumerate()
+    sorted.into_iter().take(n).enumerate()
         .map(|(i, (item, &count))| TopItem {
             rank: i + 1,
-            item: if item.len() > 55 {
-                format!("{}...", &item[..52])
-            } else {
-                item.clone()
-            },
+            item: if item.len() > 55 { format!("{}...", &item[..52]) } else { item.clone() },
             count,
-            percentage: format!("{:.1}%", (count as f64 / total as f64) * 100.0),
+            percentage: format!("{:.1}%", (count as f64 / total.max(1) as f64) * 100.0),
         })
         .collect()
 }
 
 pub fn run(input: &str, _source: &str, top: usize, blocked_only: bool, output: Option<&str>) -> Result<()> {
-    println!(
-        "{} {}",
-        "📊 Parsing proxy logs from:".green().bold(),
-        input.yellow()
-    );
+    println!("{} {}", "Parsing proxy logs from:".green().bold(), input.yellow());
     println!();
 
-    let content =
-        fs::read_to_string(input).with_context(|| format!("Failed to read file: {}", input))?;
-
+    let content = fs::read_to_string(input).with_context(|| format!("Failed to read: {}", input))?;
     let mut reader = csv::ReaderBuilder::new()
         .flexible(true)
         .trim(csv::Trim::All)
@@ -111,7 +93,7 @@ pub fn run(input: &str, _source: &str, top: usize, blocked_only: bool, output: O
     for result in reader.deserialize() {
         match result {
             Ok(entry) => entries.push(entry),
-            Err(e) => eprintln!("{} Skipping row: {}", "⚠".yellow(), e),
+            Err(e) => eprintln!("{} Skipping row: {}", "Warning:".yellow(), e),
         }
     }
 
@@ -126,7 +108,7 @@ pub fn run(input: &str, _source: &str, top: usize, blocked_only: bool, output: O
         indicatif::ProgressStyle::default_bar()
             .template("  Analyzing [{bar:40.cyan/blue}] {pos}/{len}")
             .unwrap()
-            .progress_chars("█▓░"),
+            .progress_chars("##-"),
     );
 
     let mut user_counts: HashMap<String, usize> = HashMap::new();
@@ -140,20 +122,11 @@ pub fn run(input: &str, _source: &str, top: usize, blocked_only: bool, output: O
     let mut unique_domains: HashMap<String, bool> = HashMap::new();
 
     for entry in &entries {
-        // Get domain from url or domain field
-        let domain = entry
-            .domain
-            .as_deref()
+        let domain = entry.domain.as_deref()
             .or(entry.url.as_deref())
             .map(|d| extract_domain(d))
             .unwrap_or_else(|| "unknown".to_string());
-
-        let user = entry
-            .user
-            .as_deref()
-            .unwrap_or("unknown")
-            .to_string();
-
+        let user = entry.user.as_deref().unwrap_or("unknown").to_string();
         let action_str = entry.action.as_deref().unwrap_or("unknown");
         let entry_blocked = is_blocked(action_str);
 
@@ -172,98 +145,62 @@ pub fn run(input: &str, _source: &str, top: usize, blocked_only: bool, output: O
         if let Some(ref cat) = entry.category {
             *category_counts.entry(cat.clone()).or_insert(0) += 1;
         }
-
-        if let Some(b) = entry.bytes {
-            total_bytes += b;
-        }
-
+        if let Some(b) = entry.bytes { total_bytes += b; }
         unique_users.insert(user, true);
         unique_domains.insert(domain, true);
-
         bar.inc(1);
     }
     bar.finish_and_clear();
 
-    // Print summary
-    println!("  {}", "━━━ LOG ANALYSIS SUMMARY ━━━".white().bold());
-    println!("  📋 Total entries:    {}", total.to_string().cyan());
-    println!(
-        "  ✅ Allowed:          {}",
-        allowed.to_string().green()
-    );
-    println!(
-        "  🚫 Blocked:          {}",
-        blocked.to_string().red()
-    );
-    println!(
-        "  👤 Unique users:     {}",
-        unique_users.len().to_string().cyan()
-    );
-    println!(
-        "  🌐 Unique domains:   {}",
-        unique_domains.len().to_string().cyan()
-    );
-    println!(
-        "  💾 Total data:       {:.2} MB",
-        total_bytes as f64 / (1024.0 * 1024.0)
-    );
+    println!("  {}", "--- LOG ANALYSIS SUMMARY ---".white().bold());
+    println!("  Total entries:    {}", total.to_string().cyan());
+    println!("  Allowed:          {}", allowed.to_string().green());
+    println!("  Blocked:          {}", blocked.to_string().red());
+    println!("  Unique users:     {}", unique_users.len().to_string().cyan());
+    println!("  Unique domains:   {}", unique_domains.len().to_string().cyan());
+    println!("  Total data:       {:.2} MB", total_bytes as f64 / (1024.0 * 1024.0));
     println!();
 
-    // Top Users
     let top_users = count_top_n(&user_counts, top, total);
     if !top_users.is_empty() {
-        println!("  {}", "👤 TOP USERS BY REQUESTS".yellow().bold());
+        println!("  {}", "TOP USERS BY REQUESTS".yellow().bold());
         println!("{}", Table::new(&top_users));
         println!();
     }
 
-    // Top Domains
     let top_doms = count_top_n(&domain_counts, top, total);
     if !top_doms.is_empty() {
-        println!("  {}", "🌐 TOP DOMAINS".yellow().bold());
+        println!("  {}", "TOP DOMAINS".yellow().bold());
         println!("{}", Table::new(&top_doms));
         println!();
     }
 
-    // Top Blocked
     let top_blk = count_top_n(&blocked_domains, top, blocked.max(1));
     if !top_blk.is_empty() {
-        println!("  {}", "🚫 TOP BLOCKED DOMAINS".red().bold());
+        println!("  {}", "TOP BLOCKED DOMAINS".red().bold());
         println!("{}", Table::new(&top_blk));
         println!();
     }
 
-    // Top Categories
     let top_cats = count_top_n(&category_counts, top, total);
     if !top_cats.is_empty() {
-        println!("  {}", "📂 TOP CATEGORIES".yellow().bold());
+        println!("  {}", "TOP CATEGORIES".yellow().bold());
         println!("{}", Table::new(&top_cats));
     }
 
-    // Export if requested
     if let Some(output_path) = output {
         let report = LogReport {
-            total_entries: total,
-            allowed_count: allowed,
-            blocked_count: blocked,
-            unique_users: unique_users.len(),
-            unique_domains: unique_domains.len(),
+            total_entries: total, allowed_count: allowed, blocked_count: blocked,
+            unique_users: unique_users.len(), unique_domains: unique_domains.len(),
             total_bytes,
             top_users: user_counts.into_iter().collect(),
             top_domains: domain_counts.into_iter().collect(),
             top_blocked: blocked_domains.into_iter().collect(),
             top_categories: category_counts.into_iter().collect(),
         };
-
-        let json =
-            serde_json::to_string_pretty(&report).context("Failed to serialize log report")?;
-        fs::write(output_path, &json)
-            .with_context(|| format!("Failed to write report to: {}", output_path))?;
-        println!(
-            "\n  {} Report exported to: {}",
-            "📁".green(),
-            output_path.yellow()
-        );
+        let json = serde_json::to_string_pretty(&report).context("Failed to serialize")?;
+        fs::write(output_path, &json).with_context(|| format!("Failed to write: {}", output_path))?;
+        println!("\n  Report exported to: {}", output_path.yellow());
     }
 
     Ok(())

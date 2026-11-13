@@ -6,7 +6,7 @@ authors = ["Your Name <your.email@example.com>"]
 description = "⚡ A blazing-fast CLI toolkit for network security operations — firewall auditing, proxy log parsing, SSL cert checking, and more."
 license = "MIT"
 readme = "README.md"
-repository = "https://github.com/DBISHT4U/netsecops"
+repository = "https://github.com/DBISHT4U/NetSecOPS"
 keywords = ["network", "security", "firewall", "proxy", "cli"]
 categories = ["command-line-utilities", "network-programming"]
 

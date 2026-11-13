@@ -55,36 +55,27 @@ pub struct AuditReport {
 
 fn audit_rule(rule: &FirewallRule, index: usize) -> Vec<AuditFinding> {
     let mut findings = Vec::new();
-    let rule_name = rule
-        .name
-        .clone()
-        .unwrap_or_else(|| format!("Rule #{}", index + 1));
-
+    let rule_name = rule.name.clone().unwrap_or_else(|| format!("Rule #{}", index + 1));
     let src = rule.source.trim().to_lowercase();
     let dst = rule.destination.trim().to_lowercase();
     let svc = rule.service.trim().to_lowercase();
     let action = rule.action.trim().to_lowercase();
+    let is_allow = action == "allow" || action == "permit" || action == "accept";
+    let src_any = src == "any" || src == "0.0.0.0/0" || src == "*";
+    let dst_any = dst == "any" || dst == "0.0.0.0/0" || dst == "*";
+    let svc_any = svc == "any" || svc == "application-default" || svc == "*";
 
-    // Check 1: any-any-any-allow (most critical)
-    if (src == "any" || src == "0.0.0.0/0" || src == "*")
-        && (dst == "any" || dst == "0.0.0.0/0" || dst == "*")
-        && (svc == "any" || svc == "application-default" || svc == "*")
-        && (action == "allow" || action == "permit" || action == "accept")
-    {
+    if src_any && dst_any && svc_any && is_allow {
         findings.push(AuditFinding {
             rule_name: rule_name.clone(),
             risk_level: "CRITICAL".to_string(),
             risk_score: 10,
-            issue: "Any-Any-Any ALLOW — completely open rule".to_string(),
+            issue: "Any-Any-Any ALLOW rule".to_string(),
             recommendation: "Remove or restrict source, destination, and service".to_string(),
         });
     }
 
-    // Check 2: any source with allow
-    if (src == "any" || src == "0.0.0.0/0" || src == "*")
-        && (action == "allow" || action == "permit" || action == "accept")
-        && !(dst == "any" || dst == "0.0.0.0/0")
-    {
+    if src_any && is_allow && !dst_any {
         findings.push(AuditFinding {
             rule_name: rule_name.clone(),
             risk_level: "HIGH".to_string(),
@@ -94,11 +85,7 @@ fn audit_rule(rule: &FirewallRule, index: usize) -> Vec<AuditFinding> {
         });
     }
 
-    // Check 3: any destination with allow
-    if (dst == "any" || dst == "0.0.0.0/0" || dst == "*")
-        && (action == "allow" || action == "permit" || action == "accept")
-        && !(src == "any" || src == "0.0.0.0/0")
-    {
+    if dst_any && is_allow && !src_any {
         findings.push(AuditFinding {
             rule_name: rule_name.clone(),
             risk_level: "HIGH".to_string(),
@@ -108,10 +95,7 @@ fn audit_rule(rule: &FirewallRule, index: usize) -> Vec<AuditFinding> {
         });
     }
 
-    // Check 4: any service with allow
-    if (svc == "any" || svc == "*")
-        && (action == "allow" || action == "permit" || action == "accept")
-    {
+    if (svc == "any" || svc == "*") && is_allow {
         findings.push(AuditFinding {
             rule_name: rule_name.clone(),
             risk_level: "MEDIUM".to_string(),
@@ -121,43 +105,27 @@ fn audit_rule(rule: &FirewallRule, index: usize) -> Vec<AuditFinding> {
         });
     }
 
-    // Check 5: risky ports open
-    let risky_ports = [
-        ("21", "FTP"),
-        ("23", "Telnet"),
-        ("445", "SMB"),
-        ("3389", "RDP"),
-        ("1433", "MSSQL"),
-        ("3306", "MySQL"),
-        ("5432", "PostgreSQL"),
-        ("6379", "Redis"),
-        ("27017", "MongoDB"),
-        ("22", "SSH"),
+    let risky_ports: &[(&str, &str)] = &[
+        ("21", "FTP"), ("23", "Telnet"), ("445", "SMB"), ("3389", "RDP"),
+        ("1433", "MSSQL"), ("3306", "MySQL"), ("5432", "PostgreSQL"),
+        ("6379", "Redis"), ("27017", "MongoDB"), ("22", "SSH"),
     ];
 
-    for (port, service_name) in &risky_ports {
-        if svc.contains(port)
-            && (action == "allow" || action == "permit" || action == "accept")
-            && (src == "any" || src == "0.0.0.0/0" || src == "*")
-        {
+    for &(port, service_name) in risky_ports {
+        if svc.contains(port) && is_allow && src_any {
             findings.push(AuditFinding {
                 rule_name: rule_name.clone(),
                 risk_level: "HIGH".to_string(),
                 risk_score: 8,
                 issue: format!("{} ({}) open from ANY source", service_name, port),
-                recommendation: format!(
-                    "Restrict {} access to specific management IPs only",
-                    service_name
-                ),
+                recommendation: format!("Restrict {} access to specific management IPs", service_name),
             });
         }
     }
 
-    // Check 6: logging disabled
     if let Some(ref log) = rule.log {
         let log_lower = log.trim().to_lowercase();
-        if log_lower == "no" || log_lower == "disabled" || log_lower == "false" || log_lower == "0"
-        {
+        if log_lower == "no" || log_lower == "disabled" || log_lower == "false" || log_lower == "0" {
             findings.push(AuditFinding {
                 rule_name: rule_name.clone(),
                 risk_level: "LOW".to_string(),
@@ -168,7 +136,6 @@ fn audit_rule(rule: &FirewallRule, index: usize) -> Vec<AuditFinding> {
         }
     }
 
-    // Check 7: disabled rule still present
     if let Some(ref enabled) = rule.enabled {
         let en = enabled.trim().to_lowercase();
         if en == "no" || en == "disabled" || en == "false" || en == "0" {
@@ -177,7 +144,7 @@ fn audit_rule(rule: &FirewallRule, index: usize) -> Vec<AuditFinding> {
                 risk_level: "LOW".to_string(),
                 risk_score: 2,
                 issue: "Rule is disabled but still in the ruleset".to_string(),
-                recommendation: "Remove disabled rules to reduce clutter and confusion".to_string(),
+                recommendation: "Remove disabled rules to reduce clutter".to_string(),
             });
         }
     }
@@ -186,16 +153,10 @@ fn audit_rule(rule: &FirewallRule, index: usize) -> Vec<AuditFinding> {
 }
 
 pub fn run(input: &str, _format: &str, output: Option<&str>, min_risk: u8) -> Result<()> {
-    println!(
-        "{} {}",
-        "🛡️  Auditing firewall rules from:".green().bold(),
-        input.yellow()
-    );
+    println!("{} {}", "Auditing firewall rules from:".green().bold(), input.yellow());
     println!();
 
-    let content =
-        fs::read_to_string(input).with_context(|| format!("Failed to read file: {}", input))?;
-
+    let content = fs::read_to_string(input).with_context(|| format!("Failed to read file: {}", input))?;
     let mut reader = csv::ReaderBuilder::new()
         .flexible(true)
         .trim(csv::Trim::All)
@@ -205,7 +166,7 @@ pub fn run(input: &str, _format: &str, output: Option<&str>, min_risk: u8) -> Re
     for result in reader.deserialize() {
         match result {
             Ok(rule) => rules.push(rule),
-            Err(e) => eprintln!("{} Skipping malformed row: {}", "⚠".yellow(), e),
+            Err(e) => eprintln!("{} Skipping malformed row: {}", "Warning:".yellow(), e),
         }
     }
 
@@ -214,14 +175,14 @@ pub fn run(input: &str, _format: &str, output: Option<&str>, min_risk: u8) -> Re
         return Ok(());
     }
 
-    println!("  📋 Total rules loaded: {}", rules.len().to_string().cyan());
+    println!("  Total rules loaded: {}", rules.len().to_string().cyan());
 
     let bar = indicatif::ProgressBar::new(rules.len() as u64);
     bar.set_style(
         indicatif::ProgressStyle::default_bar()
             .template("  Auditing [{bar:40.cyan/blue}] {pos}/{len}")
             .unwrap()
-            .progress_chars("█▓░"),
+            .progress_chars("##-"),
     );
 
     let mut all_findings: Vec<AuditFinding> = Vec::new();
@@ -236,64 +197,29 @@ pub fn run(input: &str, _format: &str, output: Option<&str>, min_risk: u8) -> Re
     }
     bar.finish_and_clear();
 
-    // Sort by risk score descending
     all_findings.sort_by(|a, b| b.risk_score.cmp(&a.risk_score));
 
     let critical = all_findings.iter().filter(|f| f.risk_score >= 9).count();
-    let high = all_findings
-        .iter()
-        .filter(|f| f.risk_score >= 7 && f.risk_score < 9)
-        .count();
-    let medium = all_findings
-        .iter()
-        .filter(|f| f.risk_score >= 4 && f.risk_score < 7)
-        .count();
-    let low = all_findings
-        .iter()
-        .filter(|f| f.risk_score < 4)
-        .count();
+    let high = all_findings.iter().filter(|f| f.risk_score >= 7 && f.risk_score < 9).count();
+    let medium = all_findings.iter().filter(|f| f.risk_score >= 4 && f.risk_score < 7).count();
+    let low = all_findings.iter().filter(|f| f.risk_score < 4).count();
 
     println!();
-    println!("  {}", "━━━ AUDIT SUMMARY ━━━".white().bold());
-    println!(
-        "  {} {}",
-        "🔴 Critical:".red().bold(),
-        critical.to_string().red().bold()
-    );
-    println!(
-        "  {} {}",
-        "🟠 High:    ".yellow().bold(),
-        high.to_string().yellow().bold()
-    );
-    println!(
-        "  {} {}",
-        "🟡 Medium:  ".bright_yellow().bold(),
-        medium.to_string().bright_yellow()
-    );
-    println!(
-        "  {} {}",
-        "🟢 Low:     ".green().bold(),
-        low.to_string().green()
-    );
-    println!(
-        "  {} {}",
-        "📊 Total findings:".white().bold(),
-        all_findings.len()
-    );
+    println!("  {}", "--- AUDIT SUMMARY ---".white().bold());
+    println!("  Critical: {}", critical.to_string().red().bold());
+    println!("  High:     {}", high.to_string().yellow().bold());
+    println!("  Medium:   {}", medium.to_string().bright_yellow());
+    println!("  Low:      {}", low.to_string().green());
+    println!("  Total findings: {}", all_findings.len());
     println!();
 
     if !all_findings.is_empty() {
         let table = Table::new(&all_findings).to_string();
         println!("{}", table);
     } else {
-        println!(
-            "  {} No findings above risk score {}.",
-            "✅".green(),
-            min_risk
-        );
+        println!("  No findings above risk score {}.", min_risk);
     }
 
-    // Export if requested
     if let Some(output_path) = output {
         let mut summary = HashMap::new();
         summary.insert("critical".to_string(), critical);
@@ -312,16 +238,10 @@ pub fn run(input: &str, _format: &str, output: Option<&str>, min_risk: u8) -> Re
             summary,
         };
 
-        let json =
-            serde_json::to_string_pretty(&report).context("Failed to serialize audit report")?;
+        let json = serde_json::to_string_pretty(&report).context("Failed to serialize")?;
         fs::write(output_path, &json)
             .with_context(|| format!("Failed to write report to: {}", output_path))?;
-
-        println!(
-            "\n  {} Report exported to: {}",
-            "📁".green(),
-            output_path.yellow()
-        );
+        println!("\n  Report exported to: {}", output_path.yellow());
     }
 
     Ok(())
