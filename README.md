@@ -4,7 +4,7 @@
 
 **Blazing-fast CLI toolkit for Network Security Operations**
 
-[![CI](https://github.com/yourusername/netsecops/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/netsecops/actions)
+[![CI](https://github.com/DBISHT4U/netsecops/actions/workflows/ci.yml/badge.svg)](https://github.com/DBISHT4U/NetSecOPS/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/Rust-1.75%2B-orange.svg)](https://www.rust-lang.org/)
 
@@ -42,16 +42,16 @@ If you work with **firewalls, web proxies, or cloud security tools** (Zscaler, F
 
 ### Download Binary (Recommended)
 
-Download the latest release for your platform from [Releases](https://github.com/yourusername/netsecops/releases):
+Download the latest release for your platform from [Releases](https://github.com/DBISHT4U/netsecops/releases):
 
 ```bash
 # Linux
-curl -L https://github.com/yourusername/netsecops/releases/latest/download/netsecops-x86_64-unknown-linux-gnu -o netsecops
+curl -L https://github.com/DBISHT4U/NetSecOPS/releases/latest/download/netsecops-x86_64-unknown-linux-gnu -o netsecops
 chmod +x netsecops
 sudo mv netsecops /usr/local/bin/
 
 # macOS
-curl -L https://github.com/yourusername/netsecops/releases/latest/download/netsecops-x86_64-apple-darwin -o netsecops
+curl -L https://github.com/DBISHT4U/NetSecOPS/releases/latest/download/netsecops-x86_64-apple-darwin -o netsecops
 chmod +x netsecops
 sudo mv netsecops /usr/local/bin/
 ```
@@ -59,7 +59,7 @@ sudo mv netsecops /usr/local/bin/
 ### Build from Source
 
 ```bash
-git clone https://github.com/yourusername/netsecops.git
+git clone https://github.com/DBISHT4U/NetSecOPS.git
 cd netsecops
 cargo build --release
 # Binary will be at target/release/netsecops
