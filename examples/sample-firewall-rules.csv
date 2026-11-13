@@ -1,0 +1,16 @@
+Rule Name,Source,Destination,Service,Action,Enabled,Log
+Allow-All-Outbound,any,any,any,allow,yes,no
+Web-Servers-HTTP,10.0.1.0/24,192.168.1.100,80,allow,yes,yes
+Web-Servers-HTTPS,10.0.1.0/24,192.168.1.100,443,allow,yes,yes
+RDP-Open-To-World,any,192.168.1.50,3389,allow,yes,yes
+SSH-Internal,10.0.0.0/8,10.0.2.0/24,22,allow,yes,yes
+SSH-Any-Source,any,10.0.2.0/24,22,allow,yes,no
+DB-Access,10.0.1.0/24,10.0.3.100,3306,allow,yes,yes
+SMB-Open,any,10.0.0.0/8,445,allow,yes,no
+FTP-Legacy,any,192.168.1.200,21,allow,yes,no
+Telnet-Old-Device,any,192.168.5.10,23,allow,no,no
+Block-Malicious,10.99.0.0/16,any,any,deny,yes,yes
+Redis-Exposed,any,10.0.3.50,6379,allow,yes,no
+MongoDB-Dev,any,10.0.3.51,27017,allow,yes,no
+Allow-DNS,10.0.0.0/8,8.8.8.8,53,allow,yes,yes
+VPN-Access,10.10.0.0/16,10.0.0.0/8,any,allow,yes,yes

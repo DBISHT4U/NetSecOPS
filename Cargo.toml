@@ -1,0 +1,35 @@
+[package]
+name = "netsecops"
+version = "0.1.0"
+edition = "2021"
+authors = ["Your Name <your.email@example.com>"]
+description = "⚡ A blazing-fast CLI toolkit for network security operations — firewall auditing, proxy log parsing, SSL cert checking, and more."
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/yourusername/netsecops"
+keywords = ["network", "security", "firewall", "proxy", "cli"]
+categories = ["command-line-utilities", "network-programming"]
+
+[dependencies]
+clap = { version = "4.4", features = ["derive", "color"] }
+csv = "1.3"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+colored = "2.1"
+chrono = { version = "0.4", features = ["serde"] }
+tabled = "0.15"
+indicatif = "0.17"
+reqwest = { version = "0.11", features = ["json", "rustls-tls"], default-features = false }
+tokio = { version = "1.35", features = ["full"] }
+rustls = "0.22"
+x509-parser = "0.16"
+webpki-roots = "0.26"
+regex = "1.10"
+glob = "0.3"
+anyhow = "1.0"
+thiserror = "1.0"
+
+[profile.release]
+opt-level = 3
+lto = true
+strip = true

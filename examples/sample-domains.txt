@@ -1,0 +1,8 @@
+# Domains to check SSL certificates
+google.com
+github.com
+stackoverflow.com
+expired.badssl.com
+self-signed.badssl.com
+microsoft.com
+cloudflare.com

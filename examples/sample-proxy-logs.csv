@@ -1,0 +1,16 @@
+Timestamp,User,Source IP,URL,Action,Category,Bytes,Method
+2024-01-15 09:01:23,john.doe,10.0.1.50,https://mail.google.com,allow,Webmail,2048,GET
+2024-01-15 09:02:11,john.doe,10.0.1.50,https://drive.google.com,allow,Cloud Storage,4096,GET
+2024-01-15 09:03:45,jane.smith,10.0.1.51,https://slack.com,allow,Collaboration,1024,GET
+2024-01-15 09:04:12,mike.wilson,10.0.1.52,https://malware-site.evil.com,blocked,Malware,0,GET
+2024-01-15 09:05:33,john.doe,10.0.1.50,https://youtube.com,allow,Streaming,524288,GET
+2024-01-15 09:06:01,jane.smith,10.0.1.51,https://phishing-page.xyz,blocked,Phishing,0,GET
+2024-01-15 09:07:22,admin.user,10.0.1.10,https://aws.amazon.com,allow,Cloud Infrastructure,8192,GET
+2024-01-15 09:08:15,mike.wilson,10.0.1.52,https://torrent-site.io,blocked,P2P,0,GET
+2024-01-15 09:09:44,sarah.jones,10.0.1.53,https://stackoverflow.com,allow,Technology,3072,GET
+2024-01-15 09:10:30,sarah.jones,10.0.1.53,https://github.com,allow,Technology,6144,GET
+2024-01-15 09:11:18,john.doe,10.0.1.50,https://facebook.com,allow,Social Media,2048,GET
+2024-01-15 09:12:55,mike.wilson,10.0.1.52,https://c2-server.bad.net,blocked,Command and Control,0,POST
+2024-01-15 09:13:40,admin.user,10.0.1.10,https://portal.azure.com,allow,Cloud Infrastructure,4096,GET
+2024-01-15 09:14:22,jane.smith,10.0.1.51,https://linkedin.com,allow,Social Media,1536,GET
+2024-01-15 09:15:01,john.doe,10.0.1.50,https://suspicious-download.ru,blocked,Suspicious,0,GET
