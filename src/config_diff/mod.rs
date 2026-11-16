@@ -63,7 +63,7 @@ fn normalize_line(line: &str) -> String {
 
 fn extract_rule_key(line: &str) -> String {
     // Try to extract a rule identifier (name, number, or first few tokens)
-    let parts: Vec<&str> = line.split(|c: char| c == ',' || c == '\t' || c == '|')
+    let parts: Vec<&str> = line.split([',', '\t', '|'])
         .map(|s| s.trim())
         .collect();
     if !parts.is_empty() {

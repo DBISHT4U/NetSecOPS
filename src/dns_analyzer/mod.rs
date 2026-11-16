@@ -145,8 +145,7 @@ fn is_dga_suspect(domain: &str) -> bool {
 }
 
 fn risk_from_entropy(entropy: f64, consonant_pct: f64, length: usize) -> String {
-    let score = if entropy > 4.2 && consonant_pct > 75.0 { 3 }
-    else if entropy > 3.8 && length > 15 { 3 }
+    let score = if (entropy > 4.2 && consonant_pct > 75.0) || (entropy > 3.8 && length > 15) { 3 }
     else if entropy > 3.5 { 2 }
     else { 1 };
 

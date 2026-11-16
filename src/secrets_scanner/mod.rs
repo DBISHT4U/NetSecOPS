@@ -82,7 +82,7 @@ struct ScanReport {
 }
 
 fn should_skip_dir(name: &str) -> bool {
-    SKIP_DIRS.iter().any(|&d| name == d)
+    SKIP_DIRS.contains(&name)
 }
 
 fn should_skip_file(path: &Path) -> bool {

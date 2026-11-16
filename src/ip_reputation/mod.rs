@@ -69,14 +69,9 @@ fn reverse_dns_heuristic(ip: &str) -> Option<String> {
     }
 
     // Check for IPs that are commonly in threat feeds (simplified patterns)
-    if let Ok(first) = octets[0].parse::<u8>() {
-        match first {
-            // Commonly abused ranges (simplified heuristic)
-            _ => None,
-        }
-    } else {
-        None
-    }
+    // Placeholder for future threat feed integration
+    let _first: Option<u8> = octets[0].parse().ok();
+    None
 }
 
 fn check_ip_against_threatlist(ip: &str, threat_ips: &HashSet<String>) -> Vec<IpFinding> {
