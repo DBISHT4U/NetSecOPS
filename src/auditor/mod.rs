@@ -6,6 +6,7 @@ use std::fs;
 use tabled::{Table, Tabled};
 
 #[derive(Debug, Deserialize, Clone)]
+#[allow(dead_code)]
 pub struct FirewallRule {
     #[serde(alias = "Rule Name", alias = "rule_name", alias = "name", alias = "Name")]
     pub name: Option<String>,
@@ -197,7 +198,7 @@ pub fn run(input: &str, _format: &str, output: Option<&str>, min_risk: u8) -> Re
     }
     bar.finish_and_clear();
 
-    all_findings.sort_by(|a, b| b.risk_score.cmp(&a.risk_score));
+    all_findings.sort_by_key(|a| std::cmp::Reverse(a.risk_score));
 
     let critical = all_findings.iter().filter(|f| f.risk_score >= 9).count();
     let high = all_findings.iter().filter(|f| f.risk_score >= 7 && f.risk_score < 9).count();

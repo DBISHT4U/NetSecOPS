@@ -6,6 +6,7 @@ use std::fs;
 use tabled::{Table, Tabled};
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 struct TrafficEntry {
     #[serde(alias = "Source", alias = "source", alias = "src_ip", alias = "SrcIP", alias = "SourceIP")]
     source: String,
@@ -121,8 +122,7 @@ pub fn run(input: &str, threshold: u64, output: Option<&str>) -> Result<()> {
     println!("  📋 Total connections: {}", total.to_string().cyan());
 
     // Analyze source IPs
-    let mut src_stats: HashMap<String, (u64, HashMap<String, bool>, HashMap<String, bool>)> =
-        HashMap::new();
+let mut src_stats: HashMap<String, (u64, HashMap<String, bool>, HashMap<String, bool>)> = HashMap::new();
     let mut port_counts: HashMap<String, usize> = HashMap::new();
     let mut suspicious_ports_found: Vec<(String, String, String)> = Vec::new();
     let mut total_bytes: u64 = 0;
@@ -172,7 +172,7 @@ pub fn run(input: &str, threshold: u64, output: Option<&str>) -> Result<()> {
         })
         .collect();
 
-    suspicious_hosts.sort_by(|a, b| b.connections.cmp(&a.connections));
+    suspicious_hosts.sort_by_key(|a| std::cmp::Reverse(a.connections));
 
     // Port statistics
     let mut port_stats: Vec<PortStat> = port_counts
@@ -184,7 +184,7 @@ pub fn run(input: &str, threshold: u64, output: Option<&str>) -> Result<()> {
             percentage: format!("{:.1}%", (count as f64 / total as f64) * 100.0),
         })
         .collect();
-    port_stats.sort_by(|a, b| b.count.cmp(&a.count));
+    port_stats.sort_by_key(|a| std::cmp::Reverse(a.count));
 
     // Print results
     println!(

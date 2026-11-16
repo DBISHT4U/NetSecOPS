@@ -19,13 +19,12 @@ colored = "2.1"
 chrono = { version = "0.4", features = ["serde"] }
 tabled = "0.15"
 indicatif = "0.17"
-reqwest = { version = "0.11", features = ["json", "rustls-tls"], default-features = false }
-tokio = { version = "1.35", features = ["full"] }
+# reqwest = { version = "0.11", features = ["json", "rustls-tls"], default-features = false }
 rustls = "0.22"
 x509-parser = "0.16"
 webpki-roots = "0.26"
 regex = "1.10"
-glob = "0.3"
+# glob = "0.3"
 anyhow = "1.0"
 thiserror = "1.0"
 

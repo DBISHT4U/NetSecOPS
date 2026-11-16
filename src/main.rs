@@ -1,3 +1,4 @@
+#![allow(dead_code, clippy::unnecessary_sort_by, clippy::redundant_closure, clippy::type_complexity, clippy::regex_creation_in_loops)]
 mod auditor;
 mod logparser;
 mod pac;

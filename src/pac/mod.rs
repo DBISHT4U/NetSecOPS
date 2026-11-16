@@ -42,6 +42,7 @@ fn validate_pac(content: &str) -> Vec<PacIssue> {
     }
 
     // Line-by-line checks
+    let ip_in_proxy = Regex::new(r"PROXY\s+\d+\.\d+\.\d+\.\d+").unwrap();
     for (i, line) in content.lines().enumerate() {
         let line_num = i + 1;
         let trimmed = line.trim();
@@ -78,7 +79,6 @@ fn validate_pac(content: &str) -> Vec<PacIssue> {
         }
 
         // Check for hardcoded IPs in proxy strings (potential issue)
-        let ip_in_proxy = Regex::new(r"PROXY\s+\d+\.\d+\.\d+\.\d+").unwrap();
         if ip_in_proxy.is_match(trimmed) {
             issues.push(PacIssue {
                 line: line_num,

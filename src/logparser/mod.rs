@@ -6,6 +6,7 @@ use std::fs;
 use tabled::{Table, Tabled};
 
 #[derive(Debug, Deserialize, Clone)]
+#[allow(dead_code)]
 pub struct LogEntry {
     #[serde(alias = "Timestamp", alias = "timestamp", alias = "date", alias = "Date")]
     pub timestamp: Option<String>,
@@ -124,7 +125,7 @@ pub fn run(input: &str, _source: &str, top: usize, blocked_only: bool, output: O
     for entry in &entries {
         let domain = entry.domain.as_deref()
             .or(entry.url.as_deref())
-            .map(|d| extract_domain(d))
+            .map(extract_domain)
             .unwrap_or_else(|| "unknown".to_string());
         let user = entry.user.as_deref().unwrap_or("unknown").to_string();
         let action_str = entry.action.as_deref().unwrap_or("unknown");
