@@ -1,0 +1,4 @@
+# Known bad IPs (sample threat intelligence feed)
+203.0.113.50
+198.51.100.23
+44.228.249.3

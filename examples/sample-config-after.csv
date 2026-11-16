@@ -1,0 +1,8 @@
+Rule Name,Source,Destination,Service,Action,Enabled,Log
+Allow-Web,10.0.1.0/24,192.168.1.100,443,allow,yes,yes
+Allow-DNS,any,8.8.8.8,53,allow,yes,yes
+Allow-Telnet,any,any,23,allow,yes,no
+Allow-SSH-Admin,10.0.0.5,10.0.1.0/24,22,allow,yes,yes
+Allow-SMB,any,any,445,allow,yes,yes
+Allow-SMTP,10.0.2.0/24,mail.corp.com,25,allow,yes,yes
+Allow-RDP,any,10.0.1.0/24,3389,allow,yes,no

@@ -1,5 +1,3 @@
-<div align="center">
-
 # ⚡ NetSecOps
 
 **Blazing-fast CLI toolkit for Network Security Operations**
@@ -8,11 +6,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/Rust-1.75%2B-orange.svg)](https://www.rust-lang.org/)
 
-*Audit firewall rules · Parse proxy logs · Check SSL certs · Test PAC files · Analyze traffic*
+*Audit firewall rules · Parse proxy logs · Check SSL certs · Test PAC files · Analyze traffic · Detect DGA domains · Check IP reputation · Scan for secrets · Diff configs · Audit passwords · Monitor file integrity*
 
 [Installation](#installation) · [Usage](#usage) · [Examples](#examples) · [Contributing](#contributing)
-
-</div>
 
 ---
 
@@ -25,18 +21,27 @@ If you work with **firewalls, web proxies, or cloud security tools** (Zscaler, F
 - 🔒 **SSL certificates** expiring silently causing outages
 - 🌐 **PAC files** that are impossible to debug
 - 📡 **Suspicious traffic** hiding in plain sight
+- 🧬 **DGA domains** and DNS tunneling going undetected
+- 🔐 **Leaked API keys** in your codebase
+- 🔑 **Weak passwords** across the organization
 
 **NetSecOps** is a single binary that handles all of this — no Python, no pip, no dependencies. Download, run, done.
 
 ## Features
 
-| Module | What It Does |
-|--------|-------------|
-| 🛡️ **Firewall Auditor** | Scans rules for any-any, open risky ports, missing logs, shadow rules. Gives risk scores. |
-| 📊 **Log Parser** | Parses Zscaler/Forcepoint/BlueCoat proxy logs. Top users, blocked domains, categories. |
-| 🔒 **SSL Checker** | Bulk checks SSL certificate expiry. Warns before outages happen. |
-| 🌐 **PAC Tester** | Validates PAC file syntax and tests URLs against proxy rules. |
-| 📡 **Traffic Analyzer** | Finds suspicious hosts, port scans, anomalous connections in traffic data. |
+| Module | Command | What It Does |
+|--------|---------|-------------|
+| 🛡️ **Firewall Auditor** | `audit-rules` | Scans rules for any-any, open risky ports, missing logs, shadow rules. Gives risk scores. |
+| 📊 **Log Parser** | `parse-logs` | Parses Zscaler/Forcepoint/BlueCoat proxy logs. Top users, blocked domains, categories. |
+| 🔒 **SSL Checker** | `ssl-check` | Bulk checks SSL certificate expiry. Warns before outages happen. |
+| 🌐 **PAC Tester** | `pac-test` | Validates PAC file syntax and tests URLs against proxy rules. |
+| 📡 **Traffic Analyzer** | `traffic-analyze` | Finds suspicious hosts, port scans, anomalous connections in traffic data. |
+| 🔍 **DNS Analyzer** | `dns-analyze` | Detects DGA domains, DNS tunneling, data exfiltration via DNS. |
+| 🔎 **IP Reputation** | `ip-check` | Checks IPs against threat feeds, detects bogons and suspicious patterns. |
+| 🔐 **Secrets Scanner** | `scan-secrets` | Finds leaked API keys, tokens, passwords, private keys in files. |
+| 🔄 **Config Diff** | `config-diff` | Compares firewall configs, flags security regressions (deny→allow, etc). |
+| 🔑 **Password Auditor** | `password-audit` | Checks strength, catches common passwords, generates HIBP hashes. |
+| 🛡️ **File Integrity** | `fim` | Creates hash baselines of critical files and detects tampering. |
 
 ## Installation
 
@@ -60,7 +65,7 @@ sudo mv netsecops /usr/local/bin/
 
 ```bash
 git clone https://github.com/DBISHT4U/NetSecOPS.git
-cd netsecops
+cd NetSecOPS
 cargo build --release
 # Binary will be at target/release/netsecops
 ```
@@ -69,129 +74,167 @@ cargo build --release
 
 ### 🛡️ Firewall Rule Auditor
 
-Audit your firewall rules for security risks. Supports CSV exports from Palo Alto, Fortinet, Cisco ASA, or any generic CSV.
-
 ```bash
-# Basic audit
 netsecops audit-rules --input rules.csv
-
-# Specify vendor format and export report
 netsecops audit-rules --input rules.csv --format paloalto --output report.json
-
-# Only show critical/high findings (risk score >= 7)
 netsecops audit-rules --input rules.csv --min-risk 7
-```
-
-**What it detects:**
-- ❌ Any-Any-Any allow rules (risk: 10/10)
-- ❌ Source ANY with allow (risk: 8/10)
-- ❌ Risky ports open from ANY (RDP, SSH, SMB, Telnet, DB ports)
-- ❌ Service ANY (all ports open)
-- ⚠️ Logging disabled
-- ⚠️ Disabled rules still in ruleset
-
-**Expected CSV format:**
-```csv
-Rule Name,Source,Destination,Service,Action,Enabled,Log
-Allow-Web,10.0.1.0/24,192.168.1.100,443,allow,yes,yes
 ```
 
 ### 📊 Proxy Log Parser
 
-Parse and analyze proxy logs from Zscaler, Forcepoint, BlueCoat, or any CSV-based log.
-
 ```bash
-# Basic analysis
 netsecops parse-logs --input access.log --source zscaler
-
-# Show top 20 results, blocked only
 netsecops parse-logs --input access.log --source forcepoint --top 20 --blocked-only
-
-# Export to JSON
-netsecops parse-logs --input access.log --output report.json
 ```
-
-**What it shows:**
-- 👤 Top users by request count
-- 🌐 Top accessed domains
-- 🚫 Top blocked domains
-- 📂 Top URL categories
-- 💾 Bandwidth usage
 
 ### 🔒 SSL Certificate Checker
 
-Check SSL certificate expiry for one domain or hundreds.
-
 ```bash
-# Check single domain
 netsecops ssl-check --input google.com
-
-# Bulk check from file
-netsecops ssl-check --input domains.txt --warn-days 30
-
-# Export results
-netsecops ssl-check --input domains.txt --output ssl-report.json
+netsecops ssl-check --input domains.txt --warn-days 30 --output ssl-report.json
 ```
 
 ### 🌐 PAC File Tester
 
-Validate and test Proxy Auto-Config (PAC) files.
-
 ```bash
-# Validate PAC syntax
 netsecops pac-test --input proxy.pac --validate
-
-# Test specific URL
 netsecops pac-test --input proxy.pac --url https://mail.google.com
-
-# Test multiple URLs
-netsecops pac-test --input proxy.pac --url-list urls.txt
 ```
-
-**What it checks:**
-- FindProxyForURL function presence and signature
-- Invalid browser APIs (alert, document, window)
-- PROXY directive format
-- Hardcoded IPs in proxy strings
-- Missing semicolons and syntax issues
 
 ### 📡 Traffic Analyzer
 
-Analyze network traffic for suspicious patterns.
+```bash
+netsecops traffic-analyze --input traffic.csv --threshold 100
+```
+
+### 🔍 DNS Analyzer *(NEW)*
+
+Analyze DNS query logs for DGA (Domain Generation Algorithm) domains, DNS tunneling attempts, and data exfiltration.
 
 ```bash
-# Basic analysis
-netsecops traffic-analyze --input traffic.csv
+# Basic DNS analysis
+netsecops dns-analyze --input dns-logs.csv
 
-# Custom threshold (flag hosts with 100+ connections)
-netsecops traffic-analyze --input traffic.csv --threshold 100
-
-# Export report
-netsecops traffic-analyze --input traffic.csv --output traffic-report.json
+# Show top 20 results and export
+netsecops dns-analyze --input dns-logs.csv --top 20 --output dns-report.json
 ```
 
 **What it detects:**
-- 🔴 Hosts with excessive connections (possible scanning)
-- 🔴 Suspicious port usage (Telnet, SMB, RDP from unusual sources)
-- 📊 Port distribution analysis
-- 💾 Data transfer anomalies
+- 🧬 DGA domains (high entropy, unusual character distribution)
+- 🕳️ DNS tunneling (long subdomains, excessive TXT queries, many unique subdomains per domain)
+- 📈 Top queried domains with client counts
+
+### 🔎 IP Reputation Checker *(NEW)*
+
+Check IPs against threat intelligence feeds and built-in heuristics.
+
+```bash
+# Check IPs with built-in rules
+netsecops ip-check --input suspicious-ips.txt
+
+# Check against a threat feed
+netsecops ip-check --input ips.txt --threat-feed known-bad-ips.txt --output ip-report.json
+```
+
+**What it detects:**
+- 🔴 IPs matching threat intelligence feeds
+- 🟡 Bogon/RFC1918 addresses in external traffic
+- 🟡 Suspicious IP patterns (sequential octets, repeated octets)
+
+### 🔐 Secrets Scanner *(NEW)*
+
+Scan files and directories for leaked API keys, tokens, passwords, and credentials.
+
+```bash
+# Scan a project directory
+netsecops scan-secrets --input ./my-project/
+
+# Scan with custom max file size (in KB)
+netsecops scan-secrets --input ./src/ --max-size 1024 --output secrets-report.json
+```
+
+**What it finds:**
+- AWS Access Keys & Secret Keys
+- GitHub / Slack / Google / Stripe / SendGrid tokens
+- Private keys (RSA, EC, DSA)
+- Database connection strings
+- Hardcoded passwords and Bearer tokens
+- JWT tokens and Basic Auth credentials
+
+### 🔄 Config Diff *(NEW)*
+
+Compare two firewall/security configuration files and flag security regressions.
+
+```bash
+# Compare before and after configs
+netsecops config-diff --before old-rules.csv --after new-rules.csv
+
+# Export to JSON
+netsecops config-diff --before old.csv --after new.csv --output diff-report.json
+```
+
+**What it flags:**
+- 🔴 **CRITICAL:** deny→allow changes, source opened to ANY, new allow-any rules
+- 🟠 **HIGH:** logging removed, risky ports opened, deny rules removed
+- 🟢 **IMPROVED:** allow→deny changes, ANY restrictions added
+
+### 🔑 Password Auditor *(NEW)*
+
+Audit password strength offline and generate hashes for HIBP (Have I Been Pwned) checking.
+
+```bash
+# Basic strength audit
+netsecops password-audit --input passwords.txt
+
+# With HIBP hash generation
+netsecops password-audit --input passwords.txt --hibp --output audit-report.json
+```
+
+**What it checks:**
+- Length, complexity, character variety
+- Common password matching (top 100 list)
+- Sequential characters and keyboard patterns
+- SHA1 hash generation for HIBP k-anonymity API
+
+### 🛡️ File Integrity Monitor *(NEW)*
+
+Create SHA-256 hash baselines of critical files and detect unauthorized changes.
+
+```bash
+# Step 1: Create baseline
+netsecops fim --input /etc/nginx/ --mode init --output baseline.json
+
+# Step 2: Check for changes later
+netsecops fim --input /etc/nginx/ --mode check --baseline baseline.json
+
+# Monitor specific files from a list
+netsecops fim --input critical-files.txt --mode init --output baseline.json
+```
+
+**What it detects:**
+- 🔴 Modified files (hash changed)
+- 🟡 Removed files
+- 🔵 New files not in baseline
+- 🟠 Size changes
 
 ## Examples
 
-The `examples/` directory contains sample data files to try:
+The `examples/` directory contains sample data files to try all modules:
 
 ```bash
-# Try firewall audit with sample data
+# Original modules
 netsecops audit-rules --input examples/sample-firewall-rules.csv
-
-# Try log parsing
 netsecops parse-logs --input examples/sample-proxy-logs.csv
-
-# Try PAC validation
 netsecops pac-test --input examples/sample.pac --validate
-
-# Try traffic analysis
 netsecops traffic-analyze --input examples/sample-traffic.csv --threshold 3
+
+# New modules
+netsecops dns-analyze --input examples/sample-dns-logs.csv
+netsecops ip-check --input examples/sample-ips.txt --threat-feed examples/sample-threat-feed.txt
+netsecops scan-secrets --input examples/
+netsecops config-diff --before examples/sample-config-before.csv --after examples/sample-config-after.csv
+netsecops password-audit --input examples/sample-passwords.txt --hibp
+netsecops fim --input examples/ --mode init --output /tmp/baseline.json
 ```
 
 ## Supported Vendors
@@ -208,7 +251,7 @@ netsecops traffic-analyze --input examples/sample-traffic.csv --threshold 3
 
 ## Roadmap
 
-- [ ] Zscaler ZIA API integration (URL lookup, policy management)
+- [ ] Zscaler ZIA API integration
 - [ ] Netskope log support
 - [ ] PCAP file analysis (native)
 - [ ] Check Point firewall support
@@ -216,12 +259,12 @@ netsecops traffic-analyze --input examples/sample-traffic.csv --threshold 3
 - [ ] Config file for default settings
 - [ ] Syslog/CEF input format
 - [ ] Integration with SIEM (Splunk, QRadar export)
+- [ ] HIBP online API integration for password audit
+- [ ] CVE feed aggregator module
 
 ## Contributing
 
 Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-The easiest way to contribute is **adding support for a new vendor** — we have a wishlist in the contributing guide.
 
 ## License
 
@@ -229,10 +272,6 @@ MIT — see [LICENSE](LICENSE).
 
 ---
 
-<div align="center">
-
 **Built with 🦀 Rust for the Network Security community**
 
 *If this tool helped you, give it a ⭐ on GitHub!*
-
-</div>
