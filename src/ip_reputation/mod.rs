@@ -99,7 +99,7 @@ fn check_ip_against_threatlist(ip: &str, threat_ips: &HashSet<String>) -> Vec<Ip
 
     // Check for suspicious patterns
     let octets: Vec<u8> = ip.split('.')
-        .filter_map(|o| o.parse().ok())
+        .filter_map(|o| o.parse::<u8>().ok())
         .collect();
 
     if octets.len() == 4 {
