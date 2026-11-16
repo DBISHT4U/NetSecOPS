@@ -1,4 +1,19 @@
-#![allow(dead_code, clippy::unnecessary_sort_by, clippy::redundant_closure, clippy::type_complexity, clippy::regex_creation_in_loops)]
+#![allow(
+    dead_code,
+    unused_imports,
+    unused_variables,
+    clippy::unnecessary_sort_by,
+    clippy::redundant_closure,
+    clippy::type_complexity,
+    clippy::regex_creation_in_loops,
+    clippy::needless_range_loop,
+    clippy::manual_map,
+    clippy::collapsible_if,
+    clippy::collapsible_else_if,
+    clippy::single_match,
+    clippy::too_many_arguments,
+    clippy::needless_return,
+)]
 mod auditor;
 mod logparser;
 mod pac;

@@ -1,3 +1,4 @@
+#[allow(unused_imports, unused_variables, dead_code, clippy::needless_return, clippy::match_single_binding, clippy::match_wildcard_for_single_variants)]
 use anyhow::{Context, Result};
 use colored::*;
 use serde::Serialize;
