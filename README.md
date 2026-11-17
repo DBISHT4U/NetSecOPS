@@ -23,6 +23,10 @@
 </p>
 
 <p>
+<div align="center">
+  <img src="demo.gif" alt="NetSecOPS Demo" width="800">
+</div>
+
   <a href="#-quick-start">Quick Start</a> •
   <a href="#-modules">Modules</a> •
   <a href="#-installation">Installation</a> •
